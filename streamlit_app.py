@@ -307,4 +307,78 @@ with c4:
         0.0,10.0,6.0
     )
 
+    def predict_new_user(user_input_data):
+
+        # Convert dictionary to DataFrame
+        new_user_df = pd.DataFrame([user_input_data])
+
+        # ----------------------------------
+        # STEP 1 - Drop unused columns
+        # ----------------------------------
+        existing_cols_to_drop = [
+            col for col in columns_to_drop_from_features
+            if col in new_user_df.columns
+        ]
+
+        X_raw_new = new_user_df.drop(columns=existing_cols_to_drop)
+
+        # ----------------------------------
+        # STEP 2 - One-Hot Encode
+        # ----------------------------------
+        categorical_cols = X_raw_new.select_dtypes(
+            include=["object", "category"]
+        ).columns.tolist()
+
+        encoded = encoder.transform(X_raw_new[categorical_cols])
+
+        encoded_df = pd.DataFrame(
+            encoded,
+            columns=encoder.get_feature_names_out(categorical_cols),
+            index=X_raw_new.index
+        )
+
+        X_processed = X_raw_new.drop(columns=categorical_cols)
+
+        X_processed = pd.concat(
+            [X_processed, encoded_df],
+            axis=1
+        )
+
+        # ----------------------------------
+        # STEP 3 - Match training columns
+        # ----------------------------------
+
+        for col in training_columns:
+            if col not in X_processed.columns:
+                X_processed[col] = 0
+
+        X_processed = X_processed[training_columns]
+
+        # ----------------------------------
+        # STEP 4 - Scale numerical columns
+        # ----------------------------------
+
+        numerical_cols = [
+            col for col in numerical_cols_df
+            if col in X_processed.columns
+        ]
+
+        X_processed[numerical_cols] = scaler.transform(
+            X_processed[numerical_cols]
+        )
+
+        # ----------------------------------
+        # STEP 5 - Feature Selection
+        # ----------------------------------
+
+        X_selected = X_processed[selected_feature_names]
+
+        # ----------------------------------
+        # STEP 6 - Prediction
+        # ----------------------------------
+
+        prediction = linear_model.predict(X_selected)
+
+        return prediction[0]
     
+    st.write("Prediction function loaded successfully!")
