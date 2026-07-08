@@ -455,10 +455,10 @@ if st.button("🎮 Predict Mental Health Risk"):
         value=f"{prediction:.2f}"
     )
 
-    if prediction < 3:
+    if prediction < 0.25:
         st.success("🟢 Low Risk")
 
-    elif prediction < 6:
+    elif prediction < 0.5:
         st.warning("🟡 Moderate Risk")
 
     else:
