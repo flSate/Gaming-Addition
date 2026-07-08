@@ -307,78 +307,149 @@ with c4:
         0.0,10.0,6.0
     )
 
-    def predict_new_user(user_input_data):
+def predict_new_user(user_input_data):
 
-        # Convert dictionary to DataFrame
-        new_user_df = pd.DataFrame([user_input_data])
+    # Convert dictionary to DataFrame
+    new_user_df = pd.DataFrame([user_input_data])
 
-        # ----------------------------------
-        # STEP 1 - Drop unused columns
-        # ----------------------------------
-        existing_cols_to_drop = [
-            col for col in columns_to_drop_from_features
-            if col in new_user_df.columns
-        ]
+    # ----------------------------------
+    # STEP 1 - Drop unused columns
+    # ----------------------------------
+    existing_cols_to_drop = [
+        col for col in columns_to_drop_from_features
+        if col in new_user_df.columns
+    ]
 
-        X_raw_new = new_user_df.drop(columns=existing_cols_to_drop)
+    X_raw_new = new_user_df.drop(columns=existing_cols_to_drop)
 
-        # ----------------------------------
-        # STEP 2 - One-Hot Encode
-        # ----------------------------------
-        categorical_cols = X_raw_new.select_dtypes(
-            include=["object", "category"]
-        ).columns.tolist()
+    # ----------------------------------
+    # STEP 2 - One-Hot Encode
+    # ----------------------------------
+    categorical_cols = X_raw_new.select_dtypes(
+        include=["object", "category"]
+    ).columns.tolist()
 
-        encoded = encoder.transform(X_raw_new[categorical_cols])
+    encoded = encoder.transform(X_raw_new[categorical_cols])
 
-        encoded_df = pd.DataFrame(
-            encoded,
-            columns=encoder.get_feature_names_out(categorical_cols),
-            index=X_raw_new.index
-        )
+    encoded_df = pd.DataFrame(
+        encoded,
+        columns=encoder.get_feature_names_out(categorical_cols),
+        index=X_raw_new.index
+    )
 
-        X_processed = X_raw_new.drop(columns=categorical_cols)
+    X_processed = X_raw_new.drop(columns=categorical_cols)
 
-        X_processed = pd.concat(
-            [X_processed, encoded_df],
-            axis=1
-        )
+    X_processed = pd.concat(
+        [X_processed, encoded_df],
+        axis=1
+    )
 
-        # ----------------------------------
-        # STEP 3 - Match training columns
-        # ----------------------------------
+    # ----------------------------------
+    # STEP 3 - Match training columns
+    # ----------------------------------
 
-        for col in training_columns:
-            if col not in X_processed.columns:
-                X_processed[col] = 0
+    for col in training_columns:
+        if col not in X_processed.columns:
+            X_processed[col] = 0
 
-        X_processed = X_processed[training_columns]
+    X_processed = X_processed[training_columns]
 
-        # ----------------------------------
-        # STEP 4 - Scale numerical columns
-        # ----------------------------------
+    # ----------------------------------
+    # STEP 4 - Scale numerical columns
+    # ----------------------------------
 
-        numerical_cols = [
-            col for col in numerical_cols_df
-            if col in X_processed.columns
-        ]
+    numerical_cols = [
+        col for col in numerical_cols_df
+        if col in X_processed.columns
+    ]
 
-        X_processed[numerical_cols] = scaler.transform(
-            X_processed[numerical_cols]
-        )
+    X_processed[numerical_cols] = scaler.transform(
+        X_processed[numerical_cols]
+    )
 
-        # ----------------------------------
-        # STEP 5 - Feature Selection
-        # ----------------------------------
+    # ----------------------------------
+    # STEP 5 - Feature Selection
+    # ----------------------------------
 
-        X_selected = X_processed[selected_feature_names]
+    X_selected = X_processed[selected_feature_names]
 
-        # ----------------------------------
-        # STEP 6 - Prediction
-        # ----------------------------------
+    # ----------------------------------
+    # STEP 6 - Prediction
+    # ----------------------------------
 
-        prediction = linear_model.predict(X_selected)
+    prediction = linear_model.predict(X_selected)
 
-        return prediction[0]
-    
-    st.write("Prediction function loaded successfully!")
+    return prediction[0]
+
+# -----------------------------------------
+# BUILD USER INPUT
+# -----------------------------------------
+
+new_user_data = {
+
+    "age": age,
+    "gender": gender,
+    "country": country,
+    "occupation": occupation,
+    "income_level": income_level,
+    "years_gaming": years_gaming,
+    "preferred_genre": preferred_genre,
+    "platform": platform,
+    "device_type": device_type,
+    "rank_tier": rank_tier,
+
+    "daily_playtime_hours": daily_playtime_hours,
+    "weekly_play_sessions": weekly_play_sessions,
+    "late_night_sessions_hours": late_night_sessions_hours,
+    "weekend_playtime_hours": weekend_playtime_hours,
+    "consecutive_hours_max": consecutive_hours_max,
+
+    "multiplayer_ratio": multiplayer_ratio,
+    "toxic_chat_reports": toxic_chat_reports,
+    "rage_quit_frequency": rage_quit_frequency,
+
+    "in_game_purchases": in_game_purchases,
+    "monthly_spending_usd": monthly_spending_usd,
+    "lootbox_openings": lootbox_openings,
+
+    "subscription_status": subscription_status,
+
+    "dopamine_dependency_index": dopamine_dependency_index,
+    "self_control_score": self_control_score,
+    "impulsiveness_score": impulsiveness_score,
+    "emotional_stability": emotional_stability,
+
+    "sleep_hours": sleep_hours,
+    "exercise_frequency_per_week": exercise_frequency_per_week,
+    "caffeine_intake_cups_day": caffeine_intake_cups_day,
+    "social_interaction_hours": social_interaction_hours,
+
+    "relationship_status": relationship_status,
+
+    "gpa_or_performance_score": gpa_or_performance_score,
+    "missed_deadlines": missed_deadlines,
+    "productivity_drop_percent": productivity_drop_percent,
+    "absenteeism_days": absenteeism_days,
+    "internet_speed_mbps": internet_speed_mbps,
+    "screen_time_total_hours": screen_time_total_hours,
+
+    "behavioral_cluster": behavioral_cluster,
+
+    "burnout_probability": burnout_probability,
+
+    # Included because your original prediction
+    # function expects them before dropping them.
+    "anxiety_level": anxiety_level,
+    "depression_indicator": depression_indicator,
+    "stress_score": stress_score,
+}
+
+st.divider()
+
+if st.button("🎮 Predict Mental Health Risk"):
+
+    prediction = predict_new_user(new_user_data)
+
+    st.success(
+        f"Predicted Mental Health Risk Score: {prediction:.2f}"
+    )
