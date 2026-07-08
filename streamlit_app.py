@@ -450,6 +450,16 @@ if st.button("🎮 Predict Mental Health Risk"):
 
     prediction = predict_new_user(new_user_data)
 
-    st.success(
-        f"Predicted Mental Health Risk Score: {prediction:.2f}"
+    st.metric(
+        label="Mental Health Risk Score",
+        value=f"{prediction:.2f}"
     )
+
+    if prediction < 3:
+        st.success("🟢 Low Risk")
+
+    elif prediction < 6:
+        st.warning("🟡 Moderate Risk")
+
+    else:
+        st.error("🔴 High Risk")
